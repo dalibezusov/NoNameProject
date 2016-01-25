@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="main_json_loader" type="id" />
+    <item name="municipality_loader" type="id" />
+    <item name="orgform_loader" type="id" />
+    <item name="organization_loader" type="id" />
+
+    //widgets ids
+    <item name="municipality_widget" type="id" />;
+    <item name="orgform_widget" type="id" />;
+    <item name="organization_widget" type="id" />;
+
+</resources>
