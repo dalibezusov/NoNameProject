@@ -19,14 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-/**
- * в ассоциативном массиве хрвнить имена виджетов и ключи к ним
- * виджеты которые видно сразу добавлять которые не видно не добавлять
- * разделить логику добавления виджитов и заполнения виджетов данными
- *
- * переписать сервис получения контента если можно
- */
-
 public class MainActivity extends Activity {
 
     private static final String INFO_TAG = "INFO_TAG";
