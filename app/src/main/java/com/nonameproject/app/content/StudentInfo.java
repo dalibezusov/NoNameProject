@@ -1,6 +1,5 @@
 package com.nonameproject.app.content;
 
-import com.google.gson.JsonArray;
 import com.google.gson.annotations.SerializedName;
 
 public class StudentInfo {
@@ -23,78 +22,38 @@ public class StudentInfo {
     public static class DocumentJS  {
 
         @SerializedName("dataset_id")
-        private int datasetId;
-
-        @SerializedName("columns")
-        private JsonArray columns;
+        private int dataSetId;
 
         @SerializedName("lastname")
-        private String lastName;
+        private String firstName;
+
+        /*@SerializedName("columns")
+        private JsonArray columns;*/
 
         @SerializedName("firstname")
-        private String firstName;
+        private String lastName;
 
         @SerializedName("age")
         private String age;
 
-        @SerializedName("id")
-        private String id;
+        @SerializedName("zayavlenie")
+        private String statement;
 
-        public DocumentJS(int dataset_id, JsonArray columns, String lastname, String firstname, String age, String id) {
-            this.id = id;
+        @SerializedName("data")
+        private String date;
+
+        /*@SerializedName("id")
+        private String id;*/
+
+        public DocumentJS(int dataSetId, /*JsonArray columns,*/ String lastName, String firstName, String age, String statement, String date/*, String id*/) {
+            /*this.id = id;*/
+            this.date = date;
+            this.statement = statement;
             this.age = age;
-            this.firstName = firstname;
-            this.lastName = lastname;
-            this.columns = columns;
-            this.datasetId = dataset_id;
-        }
-
-        public int getDataset_id() {
-            return datasetId;
-        }
-
-        public void setDataset_id(int dataset_id) {
-            this.datasetId = dataset_id;
-        }
-
-        public JsonArray getColumns() {
-            return columns;
-        }
-
-        public void setColumns(JsonArray columns) {
-            this.columns = columns;
-        }
-
-        public String getLastName() {
-            return lastName;
-        }
-
-        public void setLastName(String lastName) {
+            this.firstName = firstName;
             this.lastName = lastName;
-        }
-
-        public String getFirstname() {
-            return firstName;
-        }
-
-        public void setFirstname(String firstname) {
-            this.firstName = firstname;
-        }
-
-        public String getAge() {
-            return age;
-        }
-
-        public void setAge(String age) {
-            this.age = age;
-        }
-
-        public Object getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
+            /*this.columns = columns;*/
+            this.dataSetId = dataSetId;
         }
     }
 }

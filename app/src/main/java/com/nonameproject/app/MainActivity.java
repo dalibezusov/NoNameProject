@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.text.InputType;
@@ -12,14 +13,11 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
-import com.nonameproject.app.AsyncTasksPack.ContentAsTask;
 import com.nonameproject.app.AsyncTasksPack.PageStructureAsTask;
 import com.nonameproject.app.api.ApiFactory;
 import com.nonameproject.app.api.PlatypusService;
 import com.nonameproject.app.content.Column;
-import com.nonameproject.app.content.ContentList;
 import com.nonameproject.app.content.StudentInfo;
 import retrofit.Call;
 import retrofit.Callback;
@@ -41,12 +39,12 @@ public class MainActivity extends FragmentActivity {
     private LinearLayout linearLayout;
 
     private List<Column> widgets = null;
-    private ContentList municipalityList = null;
-    private ContentList orgformList = null;
-    private ContentList organizationList = null;
+    // private ContentList municipalityList = null;
+    // private ContentList orgformList = null;
+    // private ContentList organizationList = null;
 
     private PageStructureAsTask getJsonAsyncTask;
-    private ContentAsTask getContentAsTask;
+    // private ContentAsTask getContentAsTask;
 
     private PlatypusService service = ApiFactory.getWidgetService();
 
@@ -85,33 +83,29 @@ public class MainActivity extends FragmentActivity {
 
         // create widgets
         linearLayout.addView(createCustomLine(lineParams));
-        for (int i = 0; i < widgets.size(); i++) {
-            if (widgets.get(i).getWidget() != null){
-                if ("select".equals(widgets.get(i).getWidget().getProperties().getControlType())&&widgets.get(i).isRequired()&&widgets.get(i).isVisible()) {
-                    linearLayout.addView(createCustomTextView(widgetsParams, widgets.get(i).getTitle()));
-                    linearLayout.addView(createCustomSpinner(widgetsParams, widgets.get(i).getFieldName(), widgets.get(i)));
-                    linearLayout.addView(createCustomLine(lineParams));
+        for (Column widget : widgets) {
+            if (widget.getWidget() != null && widget.isRequired() && widget.isVisible()) {
+                if ("select".equals(widget.getWidget().getProperties().getControlType())) {
+                    linearLayout.addView(createCustomTextView(widgetsParams, widget.getTitle()));
+                    linearLayout.addView(createCustomSpinner(widgetsParams, widget.getFieldName()));
                 }
-                if ("edit".equals(widgets.get(i).getWidget().getWidgetName())&&widgets.get(i).isRequired()&&widgets.get(i).isVisible()) {
-                    linearLayout.addView(createCustomTextView(widgetsParams, widgets.get(i).getTitle()));
-                    linearLayout.addView(createCustomPlainText(widgetsParams, widgets.get(i).getFieldName()));
-                    linearLayout.addView(createCustomLine(lineParams));
+                if ("edit".equals(widget.getWidget().getWidgetName())) {
+                    linearLayout.addView(createCustomTextView(widgetsParams, widget.getTitle()));
+                    linearLayout.addView(createCustomPlainText(widgetsParams, widget.getFieldName()));
                 }
-                if ("number".equals(widgets.get(i).getWidget().getWidgetName())&&widgets.get(i).isRequired()&&widgets.get(i).isVisible()) {
-                    linearLayout.addView(createCustomTextView(widgetsParams, widgets.get(i).getTitle()));
-                    linearLayout.addView(createCustomNumberText(widgetsParams, widgets.get(i).getFieldName()));
-                    linearLayout.addView(createCustomLine(lineParams));
+                if ("number".equals(widget.getWidget().getWidgetName())) {
+                    linearLayout.addView(createCustomTextView(widgetsParams, widget.getTitle()));
+                    linearLayout.addView(createCustomNumberText(widgetsParams, widget.getFieldName()));
                 }
-                if ("textarea".equals(widgets.get(i).getWidget().getWidgetName())&&widgets.get(i).isRequired()&&widgets.get(i).isVisible()) {
-                    linearLayout.addView(createCustomTextView(widgetsParams, widgets.get(i).getTitle()));
-                    linearLayout.addView(createCustomMultiLineText(widgetsParams, widgets.get(i).getFieldName()));
-                    linearLayout.addView(createCustomLine(lineParams));
+                if ("textarea".equals(widget.getWidget().getWidgetName())) {
+                    linearLayout.addView(createCustomTextView(widgetsParams, widget.getTitle()));
+                    linearLayout.addView(createCustomMultiLineText(widgetsParams, widget.getFieldName()));
                 }
-                if ("date".equals(widgets.get(i).getWidget().getWidgetName())&&widgets.get(i).isRequired()&&widgets.get(i).isVisible()) {
-                    linearLayout.addView(createCustomTextView(widgetsParams, widgets.get(i).getTitle()));
-                    linearLayout.addView(createCustomDateText(widgetsParams, widgets.get(i).getFieldName()));
-                    linearLayout.addView(createCustomLine(lineParams));
+                if ("date".equals(widget.getWidget().getWidgetName())) {
+                    linearLayout.addView(createCustomTextView(widgetsParams, widget.getTitle()));
+                    linearLayout.addView(createCustomDateText(widgetsParams, widget.getFieldName()));
                 }
+                linearLayout.addView(createCustomLine(lineParams));
             }
 
         }
@@ -128,7 +122,7 @@ public class MainActivity extends FragmentActivity {
 
     }
 
-    private Spinner createCustomSpinner(LinearLayout.LayoutParams widParams, String fieldName, Column widget) {
+    private Spinner createCustomSpinner(LinearLayout.LayoutParams widParams, String fieldName) {
 
         Spinner spinner = new Spinner(this);
         spinner.setLayoutParams(widParams);
@@ -182,9 +176,9 @@ public class MainActivity extends FragmentActivity {
                 DialogFragment datePickerFragment = new MyDatePicker(){
                     @Override
                     public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-                        editText.setText(new StringBuilder().append(month + 1).append(".")
-                                .append(day).append(".")
-                                .append(year));
+                        editText.setText(new StringBuilder().append(year).append("-")
+                                .append(month + 1).append("-")
+                                .append(day));
                     }
                 };
                 datePickerFragment.show(getSupportFragmentManager(), "datePicker");
@@ -246,6 +240,7 @@ public class MainActivity extends FragmentActivity {
 
     public static class MyDatePicker extends DialogFragment implements DatePickerDialog.OnDateSetListener {
 
+        @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             // определяем текущую дату
@@ -266,8 +261,16 @@ public class MainActivity extends FragmentActivity {
         EditText firstNameEdText = (EditText)findViewById(widgetsIds.get(widgets.get(0).getFieldName()));
         EditText lastNameEdText = (EditText)findViewById(widgetsIds.get(widgets.get(1).getFieldName()));
         EditText age = (EditText)findViewById(widgetsIds.get(widgets.get(2).getFieldName()));
+        EditText statement = (EditText)findViewById(widgetsIds.get(widgets.get(3).getFieldName()));
+        EditText date = (EditText)findViewById(widgetsIds.get(widgets.get(4).getFieldName()));
 
-        StudentInfo.DocumentJS doc = new StudentInfo.DocumentJS(25, new JsonArray(), lastNameEdText.getText().toString(), firstNameEdText.getText().toString(), age.getText().toString(), "NULL");
+        StudentInfo.DocumentJS doc = new StudentInfo.DocumentJS(25,
+                lastNameEdText.getText().toString(),
+                firstNameEdText.getText().toString(),
+                age.getText().toString(),
+                statement.getText().toString(),
+                date.getText().toString()
+        );
         StudentInfo studentInfo = new StudentInfo(doc);
 
         Gson gson = new Gson();
@@ -290,4 +293,5 @@ public class MainActivity extends FragmentActivity {
 
         Log.i(INFO_TAG, "stud info json: " + js);
     }
+
 }
