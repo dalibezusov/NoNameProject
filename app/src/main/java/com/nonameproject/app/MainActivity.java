@@ -1,25 +1,38 @@
 package com.nonameproject.app;
 
-import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
 import com.nonameproject.app.AsyncTasksPack.ContentAsTask;
 import com.nonameproject.app.AsyncTasksPack.PageStructureAsTask;
 import com.nonameproject.app.api.ApiFactory;
 import com.nonameproject.app.api.PlatypusService;
 import com.nonameproject.app.content.Column;
 import com.nonameproject.app.content.ContentList;
+import com.nonameproject.app.content.StudentInfo;
 import retrofit.Call;
+import retrofit.Callback;
+import retrofit.Response;
 
-import java.util.ArrayList;
+import java.lang.reflect.Type;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class MainActivity extends Activity {
+public class MainActivity extends FragmentActivity {
 
     private static final String INFO_TAG = "INFO_TAG";
     private static final String ERR_TAG = "ERR_TAG";
@@ -50,14 +63,15 @@ public class MainActivity extends Activity {
         try {
             widgets = getJsonAsyncTask.get();
         } catch (InterruptedException | ExecutionException e) {
+            Log.e(ERR_TAG, "some error in onCreate");
             e.printStackTrace();
         }
-        //Log.i(INFO_TAG, "result from onCreate: " + widgets.get(0).getFieldName());
+        Log.i(INFO_TAG, "result from onCreate: " + widgets.get(0).getFieldName());
 
-        createUI(widgets);
+        createUI();
     }
 
-    private void createUI(List<Column> widgets) {
+    private void createUI() {
 
         // create layout
         linearLayout = new LinearLayout(this);
@@ -78,25 +92,133 @@ public class MainActivity extends Activity {
                     linearLayout.addView(createCustomSpinner(widgetsParams, widgets.get(i).getFieldName(), widgets.get(i)));
                     linearLayout.addView(createCustomLine(lineParams));
                 }
+                if ("edit".equals(widgets.get(i).getWidget().getWidgetName())&&widgets.get(i).isRequired()&&widgets.get(i).isVisible()) {
+                    linearLayout.addView(createCustomTextView(widgetsParams, widgets.get(i).getTitle()));
+                    linearLayout.addView(createCustomPlainText(widgetsParams, widgets.get(i).getFieldName()));
+                    linearLayout.addView(createCustomLine(lineParams));
+                }
+                if ("number".equals(widgets.get(i).getWidget().getWidgetName())&&widgets.get(i).isRequired()&&widgets.get(i).isVisible()) {
+                    linearLayout.addView(createCustomTextView(widgetsParams, widgets.get(i).getTitle()));
+                    linearLayout.addView(createCustomNumberText(widgetsParams, widgets.get(i).getFieldName()));
+                    linearLayout.addView(createCustomLine(lineParams));
+                }
+                if ("textarea".equals(widgets.get(i).getWidget().getWidgetName())&&widgets.get(i).isRequired()&&widgets.get(i).isVisible()) {
+                    linearLayout.addView(createCustomTextView(widgetsParams, widgets.get(i).getTitle()));
+                    linearLayout.addView(createCustomMultiLineText(widgetsParams, widgets.get(i).getFieldName()));
+                    linearLayout.addView(createCustomLine(lineParams));
+                }
+                if ("date".equals(widgets.get(i).getWidget().getWidgetName())&&widgets.get(i).isRequired()&&widgets.get(i).isVisible()) {
+                    linearLayout.addView(createCustomTextView(widgetsParams, widgets.get(i).getTitle()));
+                    linearLayout.addView(createCustomDateText(widgetsParams, widgets.get(i).getFieldName()));
+                    linearLayout.addView(createCustomLine(lineParams));
+                }
             }
 
         }
+        linearLayout.addView(createCustomButton(widgetsParams));
         Log.i(INFO_TAG, "widgets ids: " + widgetsIds);
-        addContent();
+
+        Button postBtn = (Button)findViewById(widgetsIds.get("button"));
+        postBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                postStudentInfo();
+            }
+        });
+
     }
 
     private Spinner createCustomSpinner(LinearLayout.LayoutParams widParams, String fieldName, Column widget) {
 
         Spinner spinner = new Spinner(this);
-
-        /*List<String> values = new ArrayList<>();
-        ArrayAdapter arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, values);
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);*/
-
         spinner.setLayoutParams(widParams);
         spinner.setId(setIds(fieldName));
 
         return spinner;
+    }
+
+    private EditText createCustomPlainText(LinearLayout.LayoutParams widParams, String fieldName) {
+        EditText editText = new EditText(this);
+        editText.setLayoutParams(widParams);
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+
+        editText.setId(setIds(fieldName));
+
+        return editText;
+    }
+
+    private EditText createCustomNumberText(LinearLayout.LayoutParams widParams, String fieldName) {
+        EditText editText = new EditText(this);
+        editText.setLayoutParams(widParams);
+        editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+        editText.setId(setIds(fieldName));
+
+        return editText;
+    }
+
+    private EditText createCustomMultiLineText(LinearLayout.LayoutParams widParams, String fieldName) {
+        EditText editText = new EditText(this);
+        editText.setLayoutParams(widParams);
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        editText.setSingleLine(false);
+        editText.setId(setIds(fieldName));
+
+        return editText;
+    }
+
+    private EditText createCustomDateText(LinearLayout.LayoutParams widParams, String fieldName) {
+        final EditText editText = new EditText(this);
+        editText.setLayoutParams(widParams);
+        editText.setInputType(InputType.TYPE_NULL);
+
+        editText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // прячем клавиатуру, что бы нельзя было редактироавть
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(editText.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+
+                // создаем диалог в котором будет календарь
+                DialogFragment datePickerFragment = new MyDatePicker(){
+                    @Override
+                    public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                        editText.setText(new StringBuilder().append(month + 1).append(".")
+                                .append(day).append(".")
+                                .append(year));
+                    }
+                };
+                datePickerFragment.show(getSupportFragmentManager(), "datePicker");
+            }
+        });
+
+        /*editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    DialogFragment datePickerFragment = new MyDatePicker(){
+                        @Override
+                        public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                            editText.setText(new StringBuilder().append(month + 1).append("/")
+                                    .append(day).append("/")
+                                    .append(year).append(" "));
+                        }
+                    };
+                    datePickerFragment.show(getSupportFragmentManager(), "datePicker");
+                }
+            }
+        });*/
+
+        editText.setId(setIds(fieldName));
+
+        return editText;
+    }
+
+    private Button createCustomButton(LinearLayout.LayoutParams widParams) {
+        Button button = new Button(this);
+        button.setLayoutParams(widParams);
+        button.setText("Отправить");
+        button.setId(setIds("button"));
+        return button;
     }
 
     private TextView createCustomTextView(LinearLayout.LayoutParams widParams, String title) {
@@ -122,111 +244,50 @@ public class MainActivity extends Activity {
         return widgetsIds.get(fieldName);
     }
 
-    private void addContent() {
+    public static class MyDatePicker extends DialogFragment implements DatePickerDialog.OnDateSetListener {
 
-        // call municipalitiy
-        Call<ContentList> call = service.getMunicipalityList();
-        getContentAsTask = new ContentAsTask(call);
-        getContentAsTask.execute();
-        try {
-            municipalityList = getContentAsTask.get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        //Log.i(INFO_TAG, "total records: " + municipalityList.getDataList().get(0).getContentListElement());
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // определяем текущую дату
+            final Calendar c = Calendar.getInstance();
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int day = c.get(Calendar.DAY_OF_MONTH);
 
-        Map<String, Integer> values = new HashMap<>();
-        List<String> content_list = new ArrayList<>();
-        for (int i = 0; i < municipalityList.getDataList().size(); i++) {
-            values.put(municipalityList.getDataList().get(i).getContentListElement(), municipalityList.getDataList().get(i).getListElement_ID());
-            content_list.add(municipalityList.getDataList().get(i).getContentListElement());
-        }
-
-        Spinner municip = (Spinner) findViewById(widgetsIds.get(widgets.get(0).getFieldName()));
-        ArrayAdapter arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, content_list);
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        municip.setAdapter(arrayAdapter);
-
-
-        // call orgform
-        Call<ContentList> call2 = service.getOrgformList();
-        getContentAsTask = new ContentAsTask(call2);
-        getContentAsTask.execute();
-        try {
-            orgformList = getContentAsTask.get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        // Log.i(INFO_TAG, "orgform: " + orgformList.getDataList().get(0).getContentListElement());
-
-        Map<String, Integer> values2 = new HashMap<>();
-        List<String> content_list2 = new ArrayList<>();
-        for (int i = 0; i < orgformList.getDataList().size(); i++) {
-            values2.put(orgformList.getDataList().get(i).getContentListElement(), orgformList.getDataList().get(i).getListElement_ID());
-            content_list2.add(orgformList.getDataList().get(i).getContentListElement());
-        }
-
-        Spinner orgform = (Spinner) findViewById(widgetsIds.get(widgets.get(1).getFieldName()));
-        ArrayAdapter arrayAdapter2 = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, content_list2);
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        orgform.setAdapter(arrayAdapter2);
-
-
-        municip.setOnItemSelectedListener(new SpinnerListner(municip, orgform, values, values2));
-        orgform.setOnItemSelectedListener(new SpinnerListner(municip, orgform, values, values2));
-    }
-
-    class SpinnerListner implements AdapterView.OnItemSelectedListener {
-
-        private Spinner municip, orgform;
-        private Map<String, Integer> municipMap, orgformMap;
-
-        public SpinnerListner(Spinner municip, Spinner orgform, Map<String, Integer> municipMap, Map<String, Integer> orgformMap) {
-            this.municip = municip;
-            this.orgform = orgform;
-            this.municipMap = municipMap;
-            this.orgformMap = orgformMap;
+            return new DatePickerDialog(getActivity(), this, year, month, day);
         }
 
         @Override
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-            int mun_id = municipMap.get(municip.getSelectedItem());
-            int org_id = orgformMap.get(orgform.getSelectedItem());
-
-            // call organization
-            Call<ContentList> call3 = service.getOrganizationList(mun_id, org_id);
-            getContentAsTask = new ContentAsTask(call3);
-            getContentAsTask.execute();
-            try {
-                organizationList = getContentAsTask.get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-            if(!organizationList.getDataList().isEmpty()){
-                Spinner organiz_spinner = (Spinner)findViewById(widgetsIds.get(widgets.get(2).getFieldName()));
-
-
-                List<String> values2 = new ArrayList<>();
-                for (int i = 0; i < organizationList.getDataList().size(); i++) {
-                    values2.add(organizationList.getDataList().get(i).getContentListElement());
-                }
-
-                ArrayAdapter arrayAdapter2 = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_item, values2);
-                arrayAdapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-                // ((TextView)parent.getChildAt(0)).setTextColor(Color.BLACK);
-                organiz_spinner.setAdapter(arrayAdapter2);
-
-                Log.i(INFO_TAG, "organization list: " + organizationList.getDataList().get(0).getContentListElement());
-            }
-
-        }
-
-        @Override
-        public void onNothingSelected(AdapterView<?> parent) {
-
+        public void onDateSet(android.widget.DatePicker datePicker, int year, int month, int day) {
         }
     }
 
+    private void postStudentInfo() {
+        EditText firstNameEdText = (EditText)findViewById(widgetsIds.get(widgets.get(0).getFieldName()));
+        EditText lastNameEdText = (EditText)findViewById(widgetsIds.get(widgets.get(1).getFieldName()));
+        EditText age = (EditText)findViewById(widgetsIds.get(widgets.get(2).getFieldName()));
+
+        StudentInfo.DocumentJS doc = new StudentInfo.DocumentJS(25, new JsonArray(), lastNameEdText.getText().toString(), firstNameEdText.getText().toString(), age.getText().toString(), "NULL");
+        StudentInfo studentInfo = new StudentInfo(doc);
+
+        Gson gson = new Gson();
+        Type collectType = new TypeToken<StudentInfo>() {}.getType();
+        String js = gson.toJson(studentInfo, collectType);
+
+        Call<Object> call = service.saveUsersInfo(studentInfo);
+        call.enqueue(new Callback<Object>() {
+            @Override
+            public void onResponse(Response<Object> response) {
+                Log.i(INFO_TAG, "students info saved. status: " + response.toString());
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Log.e(ERR_TAG, "students info don't save: " + t.toString());
+                Log.e(ERR_TAG, "students info don't save: " + t.getMessage());
+            }
+        });
+
+        Log.i(INFO_TAG, "stud info json: " + js);
+    }
 }

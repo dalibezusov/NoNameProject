@@ -25,13 +25,21 @@ public class PageStructureAsTask extends AsyncTask<Void, Void, List<Column>> {
     protected List<Column> doInBackground(Void... params) {
 
         PlatypusService service = ApiFactory.getWidgetService();
+        Gson gson = new Gson();
 
         Call<JsonObject> call = service.getMainJson();
         JsonObject mainJsonStr = null;
+
         try {
             mainJsonStr = call.execute().body();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+
+        if (mainJsonStr != null ) {
+            Log.i(INFO_TAG, "result mainJson: " + mainJsonStr);
+            Log.i(INFO_TAG, "aaData array: " + mainJsonStr.get("aaData").getAsJsonArray().get(0).toString());
         }
 
         List<Column> columnList = null;
@@ -41,10 +49,8 @@ public class PageStructureAsTask extends AsyncTask<Void, Void, List<Column>> {
             JsonObject o = parser.parse(aaData).getAsJsonObject();
             JsonArray columns = o.getAsJsonArray("columns");
 
-            Gson gson = new Gson();
 
-            Type collectType = new TypeToken<List<Column>>() {
-            }.getType();
+            Type collectType = new TypeToken<List<Column>>() {}.getType();
             columnList = gson.fromJson(columns, collectType);
 
             Log.i(INFO_TAG, "number of widgets: " + columnList.size());

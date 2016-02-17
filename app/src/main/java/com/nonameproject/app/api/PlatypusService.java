@@ -2,14 +2,23 @@ package com.nonameproject.app.api;
 
 import com.google.gson.JsonObject;
 import com.nonameproject.app.content.ContentList;
+import com.nonameproject.app.content.StudentInfo;
 import retrofit.Call;
+import retrofit.http.Body;
 import retrofit.http.GET;
+import retrofit.http.POST;
 import retrofit.http.Query;
 
 public interface PlatypusService {
 
-    @GET("/dataset/list?f=100&iDisplayStart=0&iDisplayLength=100&s_fields=JSON&f_id=16&ajax=true&_=1452849816186")
+    @POST("/dataset/add?f=25")
+    Call<Object> saveUsersInfo(@Body StudentInfo studentInfo);
+
+    @GET("/dataset/list?f=100&iDisplayStart=0&iDisplayLength=100&s_fields=JSON&f_id=25&ajax=true&_=1452849816186")
     Call<JsonObject> getMainJson();
+
+    /*@GET("/dataset/list?f=100&iDisplayStart=0&iDisplayLength=100&s_fields=JSON&f_id=16&ajax=true&_=1452849816186")
+    Call<JsonObject> getMainJson();*/
 
     @GET("/dataset/list?f=14&iDisplayStart=0&iDisplayLength=200&iSortingCols=1&iSortCol_0=1&s_fields=id,name&_=1453455717700")
     Call<ContentList> getMunicipalityList();
