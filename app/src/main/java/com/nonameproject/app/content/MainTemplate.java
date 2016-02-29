@@ -2,7 +2,7 @@ package com.nonameproject.app.content;
 
 import com.google.gson.annotations.SerializedName;
 
-public class Column {
+public class MainTemplate {
 
     @SerializedName("fieldname")
     private String fieldName;
@@ -34,7 +34,7 @@ public class Column {
     @SerializedName("indexed")
     private String indexed;
 
-    public Column(String fieldName, String title, String description, boolean visible, String type, boolean required, Widget widget, String condition, String defaultValue, String indexed) {
+    public MainTemplate(String fieldName, String title, String description, boolean visible, String type, boolean required, Widget widget, String condition, String defaultValue, String indexed) {
         this.fieldName = fieldName;
         this.title = title;
         this.description = description;

@@ -1,4 +1,4 @@
-package com.nonameproject.app.AsyncTasksPack;
+package com.nonameproject.app.async_tasks;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -7,24 +7,24 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
-import com.nonameproject.app.api.ApiFactory;
-import com.nonameproject.app.api.PlatypusService;
-import com.nonameproject.app.content.Column;
+import com.nonameproject.app.api.APIFactory;
+import com.nonameproject.app.api.APIService;
+import com.nonameproject.app.content.MainTemplate;
 import retrofit.Call;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
 
-public class PageStructureAsTask extends AsyncTask<Void, Void, List<Column>> {
+public class MainTemplateAsyncTask extends AsyncTask<Void, Void, List<MainTemplate>> {
 
     private static final String INFO_TAG = "INFO_TAG";
     private static final String ERR_TAG = "ERR_TAG";
 
     @Override
-    protected List<Column> doInBackground(Void... params) {
+    protected List<MainTemplate> doInBackground(Void... params) {
 
-        PlatypusService service = ApiFactory.getWidgetService();
+        APIService service = APIFactory.getWidgetService();
         Gson gson = new Gson();
 
         Call<JsonObject> call = service.getMainJson();
@@ -42,7 +42,7 @@ public class PageStructureAsTask extends AsyncTask<Void, Void, List<Column>> {
             Log.i(INFO_TAG, "aaData array: " + mainJsonStr.get("aaData").getAsJsonArray().get(0).toString());
         }
 
-        List<Column> columnList = null;
+        List<MainTemplate> mainTemplateList = null;
         if (mainJsonStr != null && mainJsonStr.has("aaData") && mainJsonStr.get("aaData").getAsJsonArray().get(0).getAsJsonObject().has("JSON")) {
             String aaData = mainJsonStr.get("aaData").getAsJsonArray().get(0).getAsJsonObject().get("JSON").getAsString();
             JsonParser parser = new JsonParser();
@@ -50,12 +50,12 @@ public class PageStructureAsTask extends AsyncTask<Void, Void, List<Column>> {
             JsonArray columns = o.getAsJsonArray("columns");
 
 
-            Type collectType = new TypeToken<List<Column>>() {}.getType();
-            columnList = gson.fromJson(columns, collectType);
+            Type collectType = new TypeToken<List<MainTemplate>>() {}.getType();
+            mainTemplateList = gson.fromJson(columns, collectType);
 
-            Log.i(INFO_TAG, "number of widgets: " + columnList.size());
+            Log.i(INFO_TAG, "number of widgets: " + mainTemplateList.size());
 
         }
-        return columnList;
+        return mainTemplateList;
     }
 }

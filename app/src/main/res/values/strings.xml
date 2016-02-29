@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">NoNameProject</string>
     <string name="hello_world">Hello world!</string>
+    <string name="errorText">Возникли некоторые проблемы! Пожалуйста, проверьте, подключено ли ваше устройство к сети!</string>
 </resources>

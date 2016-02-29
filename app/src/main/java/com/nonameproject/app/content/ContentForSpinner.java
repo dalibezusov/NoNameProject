@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class ContentList {
+public class ContentForSpinner {
 
     @SerializedName("iTotalRecords")
     private String totalRecords;
@@ -15,7 +15,7 @@ public class ContentList {
     @SerializedName("aaData")
     private List<DataObj> dataList;
 
-    public ContentList(String totalRecords, String totalDisplayRecords, List<DataObj> dataList) {
+    public ContentForSpinner(String totalRecords, String totalDisplayRecords, List<DataObj> dataList) {
         this.totalRecords = totalRecords;
         this.totalDisplayRecords = totalDisplayRecords;
         this.dataList = dataList;

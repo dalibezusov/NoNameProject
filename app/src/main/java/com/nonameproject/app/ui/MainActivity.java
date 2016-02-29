@@ -1,4 +1,4 @@
-package com.nonameproject.app;
+package com.nonameproject.app.ui;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -14,59 +14,81 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.nonameproject.app.AsyncTasksPack.PageStructureAsTask;
-import com.nonameproject.app.api.ApiFactory;
-import com.nonameproject.app.api.PlatypusService;
-import com.nonameproject.app.content.Column;
-import com.nonameproject.app.content.StudentInfo;
+import com.nonameproject.app.async_tasks.MainTemplateAsyncTask;
+import com.nonameproject.app.R;
+import com.nonameproject.app.api.APIFactory;
+import com.nonameproject.app.api.APIService;
+import com.nonameproject.app.content.MainTemplate;
+import com.nonameproject.app.content.Response;
 import retrofit.Call;
 import retrofit.Callback;
-import retrofit.Response;
 
 import java.lang.reflect.Type;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 
 public class MainActivity extends FragmentActivity {
 
     private static final String INFO_TAG = "INFO_TAG";
     private static final String ERR_TAG = "ERR_TAG";
 
-    // main layout
     private LinearLayout linearLayout;
 
-    private List<Column> widgets = null;
-    // private ContentList municipalityList = null;
-    // private ContentList orgformList = null;
-    // private ContentList organizationList = null;
+    private List<MainTemplate> widgets = null;
+    // private ContentForSpinner municipalityList = null;
+    // private ContentForSpinner orgformList = null;
+    // private ContentForSpinner organizationList = null;
 
-    private PageStructureAsTask getJsonAsyncTask;
-    // private ContentAsTask getContentAsTask;
+    private MainTemplateAsyncTask mainTemplateAsyncTask;
+    //private ContentForSpinnerAsyncTask getContentAsTask;
 
-    private PlatypusService service = ApiFactory.getWidgetService();
+    private APIService service = APIFactory.getWidgetService();
 
     private Map<String, Integer> widgetsIds = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        getJsonAsyncTask = new PageStructureAsTask();
-        getJsonAsyncTask.execute();
-
-        try {
-            widgets = getJsonAsyncTask.get();
-        } catch (InterruptedException | ExecutionException e) {
-            Log.e(ERR_TAG, "some error in onCreate");
-            e.printStackTrace();
+        //Log.e(ERR_TAG, String.valueOf(isOnline(getApplicationContext())));
+        if (isOnline()){
+            mainTemplateAsyncTask = new MainTemplateAsyncTask();
+            mainTemplateAsyncTask.execute();
+            try {
+                widgets = mainTemplateAsyncTask.get();
+            } catch (InterruptedException | ExecutionException e) {
+                Log.e(ERR_TAG, "some error in onCreate");
+                e.printStackTrace();
+            }
+            Log.i(INFO_TAG, "result from onCreate: " + widgets.get(0).getFieldName());
+            createUI();
+        }else{
+            setContentView(R.layout.activity_main);
         }
-        Log.i(INFO_TAG, "result from onCreate: " + widgets.get(0).getFieldName());
+    }
 
-        createUI();
+    public static boolean isOnline() {
+        InetAddress inetAddress = null;
+        try {
+            Future<InetAddress> future = Executors.newSingleThreadExecutor().submit(new Callable<InetAddress>() {
+                @Override
+                public InetAddress call() {
+                    try {
+                        return InetAddress.getByName("google.com");
+                    } catch (UnknownHostException e) {
+                        return null;
+                    }
+                }
+            });
+            inetAddress = future.get(1000, TimeUnit.MILLISECONDS);
+            future.cancel(true);
+        } catch (InterruptedException | ExecutionException | TimeoutException ignored) {
+        }
+        return inetAddress!=null && !inetAddress.equals("");
     }
 
     private void createUI() {
@@ -83,7 +105,7 @@ public class MainActivity extends FragmentActivity {
 
         // create widgets
         linearLayout.addView(createCustomLine(lineParams));
-        for (Column widget : widgets) {
+        for (MainTemplate widget : widgets) {
             if (widget.getWidget() != null && widget.isRequired() && widget.isVisible()) {
                 if ("select".equals(widget.getWidget().getProperties().getControlType())) {
                     linearLayout.addView(createCustomTextView(widgetsParams, widget.getTitle()));
@@ -264,23 +286,23 @@ public class MainActivity extends FragmentActivity {
         EditText statement = (EditText)findViewById(widgetsIds.get(widgets.get(3).getFieldName()));
         EditText date = (EditText)findViewById(widgetsIds.get(widgets.get(4).getFieldName()));
 
-        StudentInfo.DocumentJS doc = new StudentInfo.DocumentJS(25,
+        Response.DocumentJS doc = new Response.DocumentJS(25,
                 lastNameEdText.getText().toString(),
                 firstNameEdText.getText().toString(),
                 age.getText().toString(),
                 statement.getText().toString(),
                 date.getText().toString()
         );
-        StudentInfo studentInfo = new StudentInfo(doc);
+        Response response = new Response(doc);
 
         Gson gson = new Gson();
-        Type collectType = new TypeToken<StudentInfo>() {}.getType();
-        String js = gson.toJson(studentInfo, collectType);
+        Type collectType = new TypeToken<Response>() {}.getType();
+        String js = gson.toJson(response, collectType);
 
-        Call<Object> call = service.saveUsersInfo(studentInfo);
+        Call<Object> call = service.saveUsersInfo(response);
         call.enqueue(new Callback<Object>() {
             @Override
-            public void onResponse(Response<Object> response) {
+            public void onResponse(retrofit.Response response) {
                 Log.i(INFO_TAG, "students info saved. status: " + response.toString());
             }
 

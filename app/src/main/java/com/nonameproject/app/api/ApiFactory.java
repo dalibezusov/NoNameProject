@@ -7,10 +7,9 @@ import retrofit.Retrofit;
 
 import java.util.concurrent.TimeUnit;
 
-public class ApiFactory {
+public class APIFactory {
 
     private static final String API_URL = "http://84.237.16.44";
-
 
     private static final int TIMEOUT = 60;
     private static final int WRITE_TIMEOUT = 60;
@@ -36,8 +35,8 @@ public class ApiFactory {
     }
 
     @NonNull
-    public static PlatypusService getWidgetService(){
-        return getRetrofit().create(PlatypusService.class);
+    public static APIService getWidgetService(){
+        return getRetrofit().create(APIService.class);
     }
 
 }

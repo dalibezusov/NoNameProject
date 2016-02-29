@@ -2,12 +2,12 @@ package com.nonameproject.app.content;
 
 import com.google.gson.annotations.SerializedName;
 
-public class StudentInfo {
+public class Response {
 
     @SerializedName("document")
     private DocumentJS documentJS;
 
-    public StudentInfo(DocumentJS documentJS) {
+    public Response(DocumentJS documentJS) {
         this.documentJS = documentJS;
     }
 
