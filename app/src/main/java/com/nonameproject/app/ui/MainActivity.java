@@ -6,18 +6,22 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.nonameproject.app.async_tasks.MainTemplateAsyncTask;
 import com.nonameproject.app.R;
 import com.nonameproject.app.api.APIFactory;
 import com.nonameproject.app.api.APIService;
+import com.nonameproject.app.async_tasks.ContentForSpinnerAsyncTask;
+import com.nonameproject.app.async_tasks.MainTemplateAsyncTask;
+import com.nonameproject.app.content.ContentForSpinner;
 import com.nonameproject.app.content.MainTemplate;
 import com.nonameproject.app.content.Response;
 import retrofit.Call;
@@ -32,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends AppCompatActivity {
 
     private static final String INFO_TAG = "INFO_TAG";
     private static final String ERR_TAG = "ERR_TAG";
@@ -40,12 +44,12 @@ public class MainActivity extends FragmentActivity {
     private LinearLayout linearLayout;
 
     private List<MainTemplate> widgets = null;
-    // private ContentForSpinner municipalityList = null;
-    // private ContentForSpinner orgformList = null;
-    // private ContentForSpinner organizationList = null;
+    private ContentForSpinner municipalityList = null;
+    private ContentForSpinner orgformList = null;
+    private ContentForSpinner organizationList = null;
 
     private MainTemplateAsyncTask mainTemplateAsyncTask;
-    //private ContentForSpinnerAsyncTask getContentAsTask;
+    private ContentForSpinnerAsyncTask getContentAsTask;
 
     private APIService service = APIFactory.getWidgetService();
 
@@ -68,6 +72,23 @@ public class MainActivity extends FragmentActivity {
             createUI();
         }else{
             setContentView(R.layout.activity_main);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.about_id:
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 

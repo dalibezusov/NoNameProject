@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">NoNameProject</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">GeoPortal</string>
     <string name="errorText">Возникли некоторые проблемы! Пожалуйста, проверьте, подключено ли ваше устройство к сети!</string>
+    <!-- menu -->
+    <string name="about_title">about</string>
 </resources>
